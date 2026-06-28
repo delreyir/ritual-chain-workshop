@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import aiJudgeAbi from "@/abi/AIJudge";
+import bountyJudgeAbi from "@/abi/BountyJudge";
 
 /**
  * Central place for the on-chain config the UI needs.
@@ -7,11 +7,11 @@ import aiJudgeAbi from "@/abi/AIJudge";
  * pointed at different Ritual deployments without code changes.
  */
 
-export const aiJudgeAbiConst = aiJudgeAbi;
+export const bountyJudgeAbiConst = bountyJudgeAbi;
 
 const rawAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.trim();
 
-/** Deployed SimpleAIBountyJudge address, or `undefined` if not configured. */
+/** Deployed BountyJudge address, or `undefined` if not configured. */
 export const contractAddress: Address | undefined =
   rawAddress && /^0x[0-9a-fA-F]{40}$/.test(rawAddress)
     ? (rawAddress as Address)

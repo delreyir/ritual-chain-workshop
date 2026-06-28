@@ -1,18 +1,18 @@
 "use client";
 
 import { useReadContract } from "wagmi";
-import aiJudgeAbi from "@/abi/AIJudge";
+import bountyJudgeAbi from "@/abi/BountyJudge";
 import { contractAddress, isContractConfigured } from "@/config/contract";
 import { ritualChain } from "@/config/wagmi";
 import { parseBounty, type Bounty } from "@/lib/bounty";
 
-/** Read + parse a single bounty, polling so status flips as the deadline passes. */
+/** Read + parse a single bounty, polling so the phase flips as deadlines pass. */
 export function useBounty(bountyId?: bigint) {
   const enabled = bountyId !== undefined && isContractConfigured;
 
   const query = useReadContract({
     address: contractAddress,
-    abi: aiJudgeAbi,
+    abi: bountyJudgeAbi,
     functionName: "getBounty",
     args: bountyId !== undefined ? [bountyId] : undefined,
     chainId: ritualChain.id,

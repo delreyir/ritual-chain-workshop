@@ -1,57 +1,50 @@
-# Sample Hardhat 3 Project (`node:test` and `viem`)
+# BountyJudge contracts (Hardhat 3 + viem)
 
-This project showcases a Hardhat 3 project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+Solidity for the Privacy-Preserving AI Bounty Judge. See the repo root
+[`README.md`](../README.md) for the full lifecycle and
+[`ARCHITECTURE.md`](../ARCHITECTURE.md) for the design.
 
-To learn more about Hardhat 3, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3](https://hardhat.org/hardhat3-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+## Contracts
 
-## Project Overview
+| File | Purpose |
+| --- | --- |
+| `contracts/BountyJudge.sol` | Required track: commit-reveal bounty judge |
+| `contracts/RitualBountyJudge.sol` | Advanced track: TEE-encrypted hidden submissions |
+| `contracts/AIJudge.sol` | Original (flawed) public-submission version, kept for reference |
+| `contracts/utils/PrecompileConsumer.sol` | Ritual precompile addresses + `_executePrecompile` |
 
-This example project includes:
-
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
-
-## Usage
-
-### Running Tests
-
-To run all the tests in the project, execute the following command:
+## Test
 
 ```shell
-npx hardhat test
+npx hardhat test            # all tests
+npx hardhat test solidity   # Solidity unit tests only (.t.sol)
 ```
 
-You can also selectively run the Solidity or `node:test` tests:
+Expected: **36 passing** (`BountyJudge.t.sol` 29 incl. a 256-run fuzz test,
+`RitualBountyJudge.t.sol` 7). The Ritual LLM precompile (`0x0802`) is not present
+on the local EVM, so `judgeAll` is mocked with `vm.mockCall`; every commit-reveal
+path runs on-chain unmocked.
+
+## Deploy
+
+The Ignition module `ignition/modules/BountyJudge.ts` deploys `BountyJudge`.
 
 ```shell
-npx hardhat test solidity
-npx hardhat test nodejs
+# local simulated chain
+npx hardhat ignition deploy ignition/modules/BountyJudge.ts
+
+# Ritual testnet (chainId 1979) - set the deployer key first
+npx hardhat keystore set DEPLOYER_PRIVATE_KEY
+npx hardhat ignition deploy --network ritual ignition/modules/BountyJudge.ts
 ```
 
-### Make a deployment to Sepolia
+The `ritual` network is configured in `hardhat.config.ts`
+(`https://rpc.ritualfoundation.org`). Get testnet funds from
+`https://faucet.ritualfoundation.org`.
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+---
 
-To run the deployment to a local chain:
-
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
-```
-
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
-
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
-```
-
-After setting the variable, you can run the deployment with the Sepolia network:
-
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
-```
+This project uses Hardhat 3 with the native Node.js test runner (`node:test`) and
+[`viem`](https://viem.sh/). Solidity tests live in `*.t.sol` files; TypeScript
+integration tests would live in `test/`. To learn more about Hardhat 3, see the
+[Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3).

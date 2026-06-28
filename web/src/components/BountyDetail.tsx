@@ -1,7 +1,7 @@
 "use client";
 
 import type { Bounty } from "@/lib/bounty";
-import { getBountyStatus, STATUS_META } from "@/lib/bounty";
+import { getBountyPhase, PHASE_META } from "@/lib/bounty";
 import { useNow } from "@/hooks/useNow";
 import { shortenAddress, formatReward, formatTimestamp, formatRelative } from "@/lib/format";
 import { Card, CardHeader, CardBody, Badge, Stat } from "@/components/ui";
@@ -16,8 +16,8 @@ export function BountyDetail({
   isOwner: boolean;
 }) {
   const now = useNow();
-  const status = getBountyStatus(bounty, now / 1000);
-  const meta = STATUS_META[status];
+  const phase = getBountyPhase(bounty, now / 1000);
+  const meta = PHASE_META[phase];
 
   return (
     <Card>
@@ -45,26 +45,38 @@ export function BountyDetail({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2">
           <Stat label="Reward" value={formatReward(bounty.reward)} />
-          <Stat label="Submissions" value={bounty.submissionCount.toString()} />
+          <Stat label="Owner" value={shortenAddress(bounty.owner)} />
+          <Stat label="Commitments" value={bounty.commitmentCount.toString()} />
+          <Stat label="Revealed" value={bounty.revealedCount.toString()} />
           <Stat
-            label="Deadline"
+            label="Commit closes"
             value={
               <span>
-                {formatTimestamp(bounty.deadline)}
+                {formatTimestamp(bounty.commitDeadline)}
                 <span className="ml-1 text-xs text-zinc-500">
-                  ({formatRelative(bounty.deadline)})
+                  ({formatRelative(bounty.commitDeadline)})
                 </span>
               </span>
             }
           />
-          <Stat label="Owner" value={shortenAddress(bounty.owner)} />
+          <Stat
+            label="Reveal closes"
+            value={
+              <span>
+                {formatTimestamp(bounty.revealDeadline)}
+                <span className="ml-1 text-xs text-zinc-500">
+                  ({formatRelative(bounty.revealDeadline)})
+                </span>
+              </span>
+            }
+          />
         </div>
 
         {bounty.finalized && (
           <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200 ring-1 ring-inset ring-emerald-500/30">
-            Finalized, winner is submission{" "}
+            Finalized, winner is revealed submission{" "}
             <span className="font-mono font-semibold">#{bounty.winnerIndex.toString()}</span>.
           </div>
         )}

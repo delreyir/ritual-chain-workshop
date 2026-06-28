@@ -1,80 +1,85 @@
 import type { Address } from "viem";
 
-/** Parsed shape of the `getBounty` tuple return value. */
+/**
+ * Mirrors the `BountyJudge.BountyView` struct returned by `getBounty`.
+ * viem decodes a single returned struct as an object keyed by its field names.
+ */
 export type Bounty = {
   owner: Address;
   title: string;
   rubric: string;
   reward: bigint;
-  deadline: bigint;
+  commitDeadline: bigint;
+  revealDeadline: bigint;
   judged: boolean;
   finalized: boolean;
-  submissionCount: bigint;
+  commitmentCount: bigint;
+  revealedCount: bigint;
   winnerIndex: bigint;
   aiReview: `0x${string}`;
 };
 
-/** getBounty returns a positional tuple — map it to a named object. */
-export function parseBounty(
-  raw: readonly [
-    Address,
-    string,
-    string,
-    bigint,
-    bigint,
-    boolean,
-    boolean,
-    bigint,
-    bigint,
-    `0x${string}`,
-  ],
-): Bounty {
-  const [
-    owner,
-    title,
-    rubric,
-    reward,
-    deadline,
-    judged,
-    finalized,
-    submissionCount,
-    winnerIndex,
-    aiReview,
-  ] = raw;
+/** Normalize the raw `getBounty` result (object or positional tuple) to Bounty. */
+export function parseBounty(raw: unknown): Bounty {
+  // viem returns a named object for a single struct return; be tolerant of a
+  // positional tuple too, just in case.
+  const o = raw as Record<string, unknown> & ArrayLike<unknown>;
+  const at = (name: string, idx: number) =>
+    (o as Record<string, unknown>)[name] ?? (o as ArrayLike<unknown>)[idx];
+
   return {
-    owner,
-    title,
-    rubric,
-    reward,
-    deadline,
-    judged,
-    finalized,
-    submissionCount,
-    winnerIndex,
-    aiReview,
+    owner: at("owner", 0) as Address,
+    title: at("title", 1) as string,
+    rubric: at("rubric", 2) as string,
+    reward: at("reward", 3) as bigint,
+    commitDeadline: at("commitDeadline", 4) as bigint,
+    revealDeadline: at("revealDeadline", 5) as bigint,
+    judged: at("judged", 6) as boolean,
+    finalized: at("finalized", 7) as boolean,
+    commitmentCount: at("commitmentCount", 8) as bigint,
+    revealedCount: at("revealedCount", 9) as bigint,
+    winnerIndex: at("winnerIndex", 10) as bigint,
+    aiReview: at("aiReview", 11) as `0x${string}`,
   };
 }
 
-export type BountyStatus = "open" | "ready" | "judged" | "finalized";
+export type BountyPhase =
+  | "commit" // accepting commitment hashes
+  | "reveal" // accepting reveals, submissions closed
+  | "judging" // reveal window over, awaiting AI judging
+  | "judged" // AI has judged, awaiting finalization
+  | "finalized";
 
-export function getBountyStatus(b: Bounty, nowSeconds = Date.now() / 1000): BountyStatus {
+export function getBountyPhase(b: Bounty, nowSeconds = Date.now() / 1000): BountyPhase {
   if (b.finalized) return "finalized";
   if (b.judged) return "judged";
-  const deadlinePassed = Number(b.deadline) <= nowSeconds;
-  return deadlinePassed ? "ready" : "open";
+  if (nowSeconds < Number(b.commitDeadline)) return "commit";
+  if (nowSeconds < Number(b.revealDeadline)) return "reveal";
+  return "judging";
 }
 
-export const STATUS_META: Record<
-  BountyStatus,
+export const PHASE_META: Record<
+  BountyPhase,
   { label: string; tone: "green" | "amber" | "indigo" | "zinc" }
 > = {
-  open: { label: "Open", tone: "green" },
-  ready: { label: "Ready for judging", tone: "amber" },
+  commit: { label: "Commit phase", tone: "green" },
+  reveal: { label: "Reveal phase", tone: "amber" },
+  judging: { label: "Ready for judging", tone: "amber" },
   judged: { label: "Judged", tone: "indigo" },
   finalized: { label: "Finalized", tone: "zinc" },
 };
 
-/** Can a participant still submit an answer? */
-export function canSubmit(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
-  return !b.judged && !b.finalized && Number(b.deadline) > nowSeconds;
+/** Can a participant still submit a commitment? */
+export function canCommit(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
+  return !b.judged && !b.finalized && Number(b.commitDeadline) > nowSeconds;
+}
+
+/** Is the reveal window currently open? */
+export function canReveal(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
+  return (
+    !b.judged &&
+    !b.finalized &&
+    Number(b.commitDeadline) <= nowSeconds &&
+    Number(b.revealDeadline) > nowSeconds
+  );
 }

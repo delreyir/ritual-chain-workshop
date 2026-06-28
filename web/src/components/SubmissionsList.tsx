@@ -1,7 +1,7 @@
 "use client";
 
 import { useReadContract } from "wagmi";
-import aiJudgeAbi from "@/abi/AIJudge";
+import bountyJudgeAbi from "@/abi/BountyJudge";
 import { contractAddress } from "@/config/contract";
 import { ritualChain } from "@/config/wagmi";
 import { shortenAddress } from "@/lib/format";
@@ -24,13 +24,13 @@ export function SubmissionsList({
   return (
     <Card>
       <CardHeader
-        title="Submissions"
-        subtitle="All submissions are judged together after the deadline."
+        title="Revealed answers"
+        subtitle="Answers stay hidden until revealed; all revealed answers are judged together."
         action={<Badge tone="zinc">{count}</Badge>}
       />
       <CardBody className="space-y-3">
         {count === 0 ? (
-          <p className="text-sm text-zinc-500">No submissions yet.</p>
+          <p className="text-sm text-zinc-500">No revealed answers yet.</p>
         ) : (
           indices.map((i) => (
             <SubmissionRow
@@ -63,8 +63,8 @@ function SubmissionRow({
 }) {
   const { data, isLoading } = useReadContract({
     address: contractAddress,
-    abi: aiJudgeAbi,
-    functionName: "getSubmission",
+    abi: bountyJudgeAbi,
+    functionName: "getRevealedSubmission",
     args: [bountyId, BigInt(index)],
     chainId: ritualChain.id,
     query: { enabled: !!contractAddress },

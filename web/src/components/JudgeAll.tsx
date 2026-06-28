@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useAccount, usePublicClient } from "wagmi";
-import aiJudgeAbi from "@/abi/AIJudge";
+import bountyJudgeAbi from "@/abi/BountyJudge";
 import { contractAddress, executorAddress } from "@/config/contract";
 import { ritualChain } from "@/config/wagmi";
-import type { Bounty } from "@/lib/bounty";
+import { getBountyPhase, type Bounty } from "@/lib/bounty";
+import { useNow } from "@/hooks/useNow";
 import { buildJudgeAllLlmInput, type JudgeSubmission } from "@/lib/ritualLlm";
 import { useWriteTx } from "@/hooks/useWriteTx";
 import { useRitualWalletStatus } from "@/hooks/useRitualWalletStatus";
@@ -27,6 +28,7 @@ export function JudgeAll({
 }) {
   const { address } = useAccount();
   const publicClient = usePublicClient({ chainId: ritualChain.id });
+  const now = useNow();
   const [gathering, setGathering] = useState(false);
   const [gatherError, setGatherError] = useState<string | null>(null);
   const tx = useWriteTx(() => onJudged());
@@ -35,10 +37,12 @@ export function JudgeAll({
   // contract) — judgeAll spends prepaid+locked RITUAL via the LLM precompile.
   const walletStatus = useRitualWalletStatus(address);
 
-  const count = Number(bounty.submissionCount);
+  const count = Number(bounty.revealedCount);
+  const phase = getBountyPhase(bounty, now / 1000);
 
-  // Gate per spec: owner only, has submissions, not yet judged.
-  if (!isOwner || bounty.judged || bounty.finalized || count === 0) {
+  // Gate per spec: owner only, reveal window finished, has revealed answers,
+  // not yet judged/finalized.
+  if (!isOwner || phase !== "judging" || count === 0) {
     return null;
   }
 
@@ -47,13 +51,13 @@ export function JudgeAll({
     setGatherError(null);
     setGathering(true);
     try {
-      // 1–2. Load every submission for this bounty.
+      // 1-2. Load every revealed answer for this bounty.
       const submissions: JudgeSubmission[] = [];
       for (let i = 0; i < count; i++) {
         const [submitter, answer] = await publicClient.readContract({
           address: contractAddress,
-          abi: aiJudgeAbi,
-          functionName: "getSubmission",
+          abi: bountyJudgeAbi,
+          functionName: "getRevealedSubmission",
           args: [bountyId, BigInt(i)],
         });
         submissions.push({ index: i, submitter, answer });
@@ -72,7 +76,7 @@ export function JudgeAll({
       // 5. Submit it on-chain.
       await tx.run({
         address: contractAddress,
-        abi: aiJudgeAbi,
+        abi: bountyJudgeAbi,
         functionName: "judgeAll",
         args: [bountyId, llmInput],
         chainId: ritualChain.id,

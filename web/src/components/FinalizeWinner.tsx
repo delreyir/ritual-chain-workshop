@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import aiJudgeAbi from "@/abi/AIJudge";
+import bountyJudgeAbi from "@/abi/BountyJudge";
 import { contractAddress } from "@/config/contract";
 import { ritualChain } from "@/config/wagmi";
 import type { Bounty } from "@/lib/bounty";
@@ -32,7 +32,7 @@ export function FinalizeWinner({
   isOwner: boolean;
   onFinalized: () => void;
 }) {
-  const count = Number(bounty.submissionCount);
+  const count = Number(bounty.revealedCount);
   const recommended = decodeAiReview(bounty.aiReview)?.parsed?.winnerIndex;
 
   // The input is prefilled with the AI recommendation until the owner edits it.
@@ -58,7 +58,7 @@ export function FinalizeWinner({
     try {
       await tx.run({
         address: contractAddress,
-        abi: aiJudgeAbi,
+        abi: bountyJudgeAbi,
         functionName: "finalizeWinner",
         args: [bountyId, BigInt(idxNum)],
         chainId: ritualChain.id,

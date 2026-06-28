@@ -51,21 +51,22 @@ export default function Home() {
         {/* Hero / explanation */}
         <section className="mb-6">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Crowd-judged bounties, settled by AI.
+            Sealed bounties, judged by AI.
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-            Submit answers to a bounty. After the deadline, Ritual AI ranks all submissions. The
-            bounty owner finalizes the winner.
+            Participants commit a hash of their answer first. Answers stay hidden until the reveal
+            phase, so nobody can copy a rival. After reveals close, Ritual AI judges every revealed
+            answer in one batch and the owner finalizes the winner.
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
             <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
+              Commit-reveal keeps answers hidden until judging.
+            </span>
+            <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
+              All revealed answers are judged together in one AI call.
+            </span>
+            <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
               AI review is advisory. The owner finalizes the winner.
-            </span>
-            <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
-              All submissions are judged together after the deadline.
-            </span>
-            <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
-              Only one winner receives the bounty reward.
             </span>
           </div>
         </section>

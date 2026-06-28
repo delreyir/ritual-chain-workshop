@@ -38,7 +38,7 @@ export function JudgeAll({
   const walletStatus = useRitualWalletStatus(address);
 
   const count = Number(bounty.revealedCount);
-  const phase = getBountyPhase(bounty, now / 1000);
+  const phase = getBountyPhase(bounty, now);
 
   // Gate per spec: owner only, reveal window finished, has revealed answers,
   // not yet judged/finalized.

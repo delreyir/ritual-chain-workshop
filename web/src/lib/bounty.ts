@@ -50,11 +50,13 @@ export type BountyPhase =
   | "judged" // AI has judged, awaiting finalization
   | "finalized";
 
-export function getBountyPhase(b: Bounty, nowSeconds = Date.now() / 1000): BountyPhase {
+// NOTE: Ritual Chain's block.timestamp is in MILLISECONDS, so all deadlines
+// returned by the contract are ms and are compared against Date.now() (ms).
+export function getBountyPhase(b: Bounty, nowMs = Date.now()): BountyPhase {
   if (b.finalized) return "finalized";
   if (b.judged) return "judged";
-  if (nowSeconds < Number(b.commitDeadline)) return "commit";
-  if (nowSeconds < Number(b.revealDeadline)) return "reveal";
+  if (nowMs < Number(b.commitDeadline)) return "commit";
+  if (nowMs < Number(b.revealDeadline)) return "reveal";
   return "judging";
 }
 
@@ -69,17 +71,17 @@ export const PHASE_META: Record<
   finalized: { label: "Finalized", tone: "zinc" },
 };
 
-/** Can a participant still submit a commitment? */
-export function canCommit(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
-  return !b.judged && !b.finalized && Number(b.commitDeadline) > nowSeconds;
+/** Can a participant still submit a commitment? (nowMs in milliseconds) */
+export function canCommit(b: Bounty, nowMs = Date.now()): boolean {
+  return !b.judged && !b.finalized && Number(b.commitDeadline) > nowMs;
 }
 
-/** Is the reveal window currently open? */
-export function canReveal(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
+/** Is the reveal window currently open? (nowMs in milliseconds) */
+export function canReveal(b: Bounty, nowMs = Date.now()): boolean {
   return (
     !b.judged &&
     !b.finalized &&
-    Number(b.commitDeadline) <= nowSeconds &&
-    Number(b.revealDeadline) > nowSeconds
+    Number(b.commitDeadline) <= nowMs &&
+    Number(b.revealDeadline) > nowMs
   );
 }

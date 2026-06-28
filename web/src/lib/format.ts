@@ -13,10 +13,10 @@ export function formatReward(wei?: bigint, symbol = "RITUAL"): string {
   return `${formatEther(wei)} ${symbol}`;
 }
 
-/** Unix seconds -> local date string. */
-export function formatTimestamp(unixSeconds?: bigint | number): string {
-  if (unixSeconds === undefined) return "-";
-  const ms = Number(unixSeconds) * 1000;
+/** On-chain timestamp (milliseconds on Ritual Chain) -> local date string. */
+export function formatTimestamp(unixMs?: bigint | number): string {
+  if (unixMs === undefined) return "-";
+  const ms = Number(unixMs);
   if (!Number.isFinite(ms) || ms <= 0) return "-";
   return new Date(ms).toLocaleString(undefined, {
     dateStyle: "medium",
@@ -24,10 +24,10 @@ export function formatTimestamp(unixSeconds?: bigint | number): string {
   });
 }
 
-/** Compact "in 2h 5m" / "3m ago" style relative label. */
-export function formatRelative(unixSeconds?: bigint | number): string {
-  if (unixSeconds === undefined) return "";
-  const target = Number(unixSeconds) * 1000;
+/** Compact "in 2h 5m" / "3m ago" style relative label. (timestamp in ms) */
+export function formatRelative(unixMs?: bigint | number): string {
+  if (unixMs === undefined) return "";
+  const target = Number(unixMs);
   const diffMs = target - Date.now();
   const past = diffMs < 0;
   let s = Math.abs(Math.floor(diffMs / 1000));

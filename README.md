@@ -118,6 +118,16 @@ Explorer: https://explorer.ritualfoundation.org/address/0x8E7f047025236dF8ACC681
 (`nextBountyId = 1`, `MAX_SUBMISSIONS = 50` confirm the commit-reveal contract).
 Point the frontend at it via `NEXT_PUBLIC_CONTRACT_ADDRESS` in `web/.env.local`.
 
+The full create → commit → reveal flow (including a wrong-salt rejection) was
+exercised live against this deployment.
+
+> **Ritual time unit:** Ritual Chain has sub-second blocks and its
+> `block.timestamp` is in **milliseconds**, not seconds. The commit/reveal
+> durations passed to `createBounty` are therefore in milliseconds on Ritual,
+> and the frontend does all deadline math in ms. The contract itself is
+> unit-agnostic (it only adds and compares timestamps), so it stays correct on
+> any EVM chain as long as the caller uses that chain's `block.timestamp` unit.
+
 ## Run the frontend
 
 ```bash

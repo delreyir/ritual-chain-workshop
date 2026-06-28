@@ -166,8 +166,10 @@ contract BountyJudge is PrecompileConsumer {
     /// @notice Create a bounty and escrow the reward.
     /// @param title Human-readable title.
     /// @param rubric Judging rubric handed to the AI judge.
-    /// @param commitDuration Seconds the commit (submission) phase stays open.
-    /// @param revealDuration Seconds the reveal phase stays open after commit.
+    /// @param commitDuration Length of the commit (submission) phase, expressed
+    ///        in `block.timestamp` units: seconds on most EVM chains, but
+    ///        MILLISECONDS on Ritual Chain (sub-second blocks).
+    /// @param revealDuration Length of the reveal phase, same units as above.
     function createBounty(
         string calldata title,
         string calldata rubric,

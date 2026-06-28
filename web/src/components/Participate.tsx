@@ -82,8 +82,8 @@ export function Participate({
     }
   }, [address, bountyId]);
 
-  const inCommit = canCommit(bounty, now / 1000);
-  const inReveal = canReveal(bounty, now / 1000);
+  const inCommit = canCommit(bounty, now);
+  const inReveal = canReveal(bounty, now);
 
   // Nothing to do outside the commit/reveal windows.
   if (!inCommit && !inReveal) return null;

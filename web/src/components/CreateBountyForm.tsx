@@ -70,8 +70,9 @@ export function CreateBountyForm({ onCreated }: { onCreated?: (bountyId: bigint)
     e.preventDefault();
     if (validation || !contractAddress) return;
 
-    const commitDuration = BigInt(Math.floor(Number(commitMinutes) * 60));
-    const revealDuration = BigInt(Math.floor(Number(revealMinutes) * 60));
+    // Ritual block.timestamp is in milliseconds, so durations are in ms.
+    const commitDuration = BigInt(Math.floor(Number(commitMinutes) * 60 * 1000));
+    const revealDuration = BigInt(Math.floor(Number(revealMinutes) * 60 * 1000));
     const value = reward.trim() === "" ? 0n : parseEther(reward.trim());
     setCreatedId(null);
 

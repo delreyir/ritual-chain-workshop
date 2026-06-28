@@ -106,6 +106,18 @@ npx hardhat ignition deploy --network ritual ignition/modules/BountyJudge.ts
 Ritual testnet: chainId `1979`, RPC `https://rpc.ritualfoundation.org`,
 faucet `https://faucet.ritualfoundation.org`.
 
+### Live deployment (Ritual testnet)
+
+`BountyJudge` is deployed and verified live at:
+
+```
+0x8E7f047025236dF8ACC6816857f98e7c5269D3B0
+```
+
+Explorer: https://explorer.ritualfoundation.org/address/0x8E7f047025236dF8ACC6816857f98e7c5269D3B0
+(`nextBountyId = 1`, `MAX_SUBMISSIONS = 50` confirm the commit-reveal contract).
+Point the frontend at it via `NEXT_PUBLIC_CONTRACT_ADDRESS` in `web/.env.local`.
+
 ## Run the frontend
 
 ```bash

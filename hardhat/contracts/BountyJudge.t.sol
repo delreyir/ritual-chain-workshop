@@ -474,7 +474,7 @@ contract BountyJudgeTest is Test {
         string memory answer = "manual";
         bytes32 salt = bytes32(uint256(42));
         uint256 id = 1;
-        bytes32 expected = keccak256(abi.encode(answer, salt, alice, id));
+        bytes32 expected = keccak256(abi.encodePacked(answer, salt, alice, id));
         assertEq(judge.computeCommitment(answer, salt, alice, id), expected);
     }
 

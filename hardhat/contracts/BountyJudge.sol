@@ -24,10 +24,11 @@ interface IRitualWallet {
 ///         on each other's answers during the submission window.
 ///
 /// @dev Commitment scheme (must be reproduced off-chain / in the frontend):
-///         commitment = keccak256(abi.encode(answer, salt, msg.sender, bountyId))
+///         commitment = keccak256(abi.encodePacked(answer, salt, msg.sender, bountyId))
 ///      Binding the hash to `msg.sender` and `bountyId` means a leaked
 ///      (answer, salt) pair cannot be replayed by another address or reused on
-///      another bounty.
+///      another bounty. (encodePacked is unambiguous here: only one dynamic
+///      field `answer`, and it is first.)
 contract BountyJudge is PrecompileConsumer {
     // --- Limits -------------------------------------------------------------
 
@@ -321,13 +322,15 @@ contract BountyJudge is PrecompileConsumer {
     // --- Views / helpers ----------------------------------------------------
 
     /// @notice Canonical commitment hash. Use the exact same encoding off-chain.
+    /// @dev Matches the homework's suggested formula:
+    ///      keccak256(abi.encodePacked(answer, salt, msg.sender, bountyId)).
     function computeCommitment(
         string memory answer,
         bytes32 salt,
         address submitter,
         uint256 bountyId
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(answer, salt, submitter, bountyId));
+        return keccak256(abi.encodePacked(answer, salt, submitter, bountyId));
     }
 
     /// @notice Current lifecycle phase, derived from time + flags.

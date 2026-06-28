@@ -6,8 +6,8 @@ Tests are Solidity unit tests (`forge-std`) run by Hardhat 3:
 cd hardhat && npx hardhat test solidity
 ```
 
-Result: **36 passing** — `contracts/BountyJudge.t.sol` (29, incl. a 256-run
-fuzz test) and `contracts/RitualBountyJudge.t.sol` (7).
+Result: **39 passing** — `contracts/BountyJudge.t.sol` (29, incl. a 256-run
+fuzz test) and `contracts/RitualBountyJudge.t.sol` (10).
 
 The Ritual LLM precompile (`0x0802`) is not present on the local EVM, so
 `judgeAll` is exercised with `vm.mockCall`, returning the exact async envelope
@@ -87,6 +87,9 @@ the real precompile emits. Every commit-reveal path runs on-chain unmocked.
 | 5 | `test_judgeAll_revertsWhileOpen` | revert `submissions still open` |
 | 6 | `test_auditSubmission_verifiesCommitment` | wrong pair reverts; correct pair flags `audited` |
 | 7 | `test_finalizeWinner_paysWinner` | winner paid, `finalized`, `winnerIndex` |
+| 8 | `test_publishRevealedBundle_storesRefAndHash` | after judging, `revealedAnswersRef` + `revealedAnswersHash` stored |
+| 9 | `test_publishRevealedBundle_revertsBeforeJudged` | revert `not judged yet` |
+| 10 | `test_publishRevealedBundle_revertsForNonOwner` | revert `not bounty owner` |
 
 ---
 

@@ -26,7 +26,7 @@ Bounty
 
 ### Two-phase flow
 1. **Commit phase** (`ts < commitDeadline`): participants store only
-   `keccak256(abi.encode(answer, salt, msg.sender, bountyId))`.
+   `keccak256(abi.encodePacked(answer, salt, msg.sender, bountyId))`.
 2. **Reveal phase** (`commitDeadline <= ts < revealDeadline`): participants send
    the plaintext `answer + salt`; the contract recomputes the hash and accepts
    the answer only on an exact match.
@@ -69,7 +69,33 @@ Bounty
   owner, title, rubric, reward, submitDeadline
   executor              // TEE executor the answers are encrypted to
   judged, finalized, aiReview, winnerIndex
+  revealedAnswersRef    // off-chain pointer to the revealed bundle (e.g. ipfs://)
+  revealedAnswersHash   // keccak256 commitment to that bundle
   submissions: EncSubmission[] { submitter, encryptedAnswer, commitment, audited }
+```
+
+### Private submission flow (diagram)
+```
+ participant browser                 chain (RitualBountyJudge)            TEE executor (enclave)
+ ───────────────────                 ──────────────────────────          ──────────────────────
+ answer + salt
+   │ ECIES-encrypt to executor pubkey
+   │ commitment=keccak256(packed)
+   ▼
+ submitEncrypted(ct, commitment) ───▶ store { ct, commitment }  (only ciphertext on-chain)
+                                          │
+                  (owner, after deadline) │ judgeAll(llmInput with encryptedSecrets[], piiEnabled)
+                                          ▼
+                                      LLM precompile 0x0802 ───────────▶ decrypt ALL answers in-enclave
+                                                                          run ONE batched judging prompt
+                                      aiReview (ranking)  ◀───────────── signed result (TEE attested)
+                                          │
+                  (owner) publishRevealedBundle(ref, hash)
+                                          ▼
+                                      store revealedAnswersRef + revealedAnswersHash
+ anyone: fetch bundle from ref ─────▶ verify keccak256(bundle) == revealedAnswersHash
+                                          │
+                  (owner) finalizeWinner(winnerIndex) ─▶ pay winner
 ```
 
 ### Flow
@@ -78,7 +104,7 @@ Bounty
 2. **submitEncrypted(bountyId, encryptedAnswer, commitment)** — the participant
    ECIES-encrypts the answer to the executor's public key off-chain and submits
    the ciphertext plus an integrity commitment
-   `keccak256(answer, salt, msg.sender, bountyId)`.
+   `keccak256(abi.encodePacked(answer, salt, msg.sender, bountyId))`.
 3. **judgeAll(bountyId, llmInput)** — built off-chain, `llmInput` is a single LLM
    precompile request where:
    - `encryptedSecrets[]` carries every submission's ciphertext, named
@@ -88,11 +114,17 @@ Bounty
    - `piiEnabled = true` so the TEE decrypts the secrets and substitutes them
      **inside the enclave** before running the model.
    The model judges the whole batch in **one** call and returns a ranking.
-4. **finalizeWinner** — owner pays the winner.
-5. **auditSubmission(answer, salt)** *(optional)* — after judging, a participant
-   can reveal their `(answer, salt)` so anyone can verify the stored ciphertext
-   really committed to that plaintext. Pure integrity check; the answer is not
-   stored.
+4. **publishRevealedBundle(bountyId, ref, hash)** *(final reveal)* — after
+   judging, the owner publishes an off-chain bundle of **all** revealed answers
+   (e.g. on IPFS/Arweave) and commits to it on-chain with only
+   `revealedAnswersRef` + `revealedAnswersHash`. Anyone fetches the bundle and
+   checks `keccak256(bundle) == revealedAnswersHash`. Large plaintext never hits
+   contract storage (the PDF's "Suggested Reveal Pattern").
+5. **finalizeWinner** — owner pays the winner.
+6. **auditSubmission(answer, salt)** *(optional, per-submission)* — a participant
+   can also reveal their own `(answer, salt)` so anyone can verify that their
+   stored ciphertext committed to that plaintext. Pure integrity check; the
+   answer is not stored.
 
 ### Where plaintext answers exist
 - In the participant's browser/CLI at encryption time (before submitting).
@@ -112,6 +144,8 @@ Bounty
 | Plaintext answer | off-chain (browser) + inside TEE only |
 | Executor public key | off-chain (`TEEServiceRegistry`) |
 | Assembled LLM request (`llmInput`) | built off-chain, passed as calldata |
+| Revealed-answers bundle (plaintext) | off-chain (IPFS / Arweave / storage-ref) |
+| Bundle reference + hash | on-chain (`revealedAnswersRef`, `revealedAnswersHash`) |
 
 ### How the LLM receives submissions for batch judging
 One request, not one-call-per-answer. The ciphertext blobs ride in the request's
@@ -121,6 +155,26 @@ single completion (a ranking or winner index) is returned via the precompile
 response and written to `aiReview`. Batching keeps cost bounded (one
 `RitualWallet`-funded call) and lets the model compare answers against each other,
 not just in isolation.
+
+### Final reveal & on-chain commitment
+The judging output is the structured shape the PDF suggests:
+```json
+{
+  "winnerIndex": 2,
+  "ranking": [{ "index": 2, "score": 94, "reason": "Best satisfies the rubric." }],
+  "revealedAnswersRef": "ipfs://... or storage-ref://...",
+  "revealedAnswersHash": "0x...",
+  "summary": "Submission 2 is the strongest answer."
+}
+```
+The owner publishes the full revealed-answers bundle off-chain and records only
+`revealedAnswersRef` + `revealedAnswersHash` on-chain via
+`publishRevealedBundle(...)`. The contract thereby **commits** to the exact
+bundle without storing it: any observer fetches the bundle from the ref and
+checks `keccak256(bundle) == revealedAnswersHash`. If the owner published a
+different bundle than what was judged, the hash check fails, so the reveal is
+tamper-evident. This satisfies "how the final reveal happens" and "how the
+contract commits to the final revealed bundle" while keeping gas bounded.
 
 ### Trust model
 - The executor is a registered, TEE-attested node (Ritual's `TEEServiceRegistry`

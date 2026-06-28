@@ -20,8 +20,8 @@ npx hardhat test            # all tests
 npx hardhat test solidity   # Solidity unit tests only (.t.sol)
 ```
 
-Expected: **36 passing** (`BountyJudge.t.sol` 29 incl. a 256-run fuzz test,
-`RitualBountyJudge.t.sol` 7). The Ritual LLM precompile (`0x0802`) is not present
+Expected: **39 passing** (`BountyJudge.t.sol` 29 incl. a 256-run fuzz test,
+`RitualBountyJudge.t.sol` 10). The Ritual LLM precompile (`0x0802`) is not present
 on the local EVM, so `judgeAll` is mocked with `vm.mockCall`; every commit-reveal
 path runs on-chain unmocked.
 

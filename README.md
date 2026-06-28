@@ -45,7 +45,7 @@ Companion docs: [`ARCHITECTURE.md`](ARCHITECTURE.md) ·
 2. **`submitCommitment(bountyId, commitment)`** — during the commit phase a
    participant posts only a hash:
    ```
-   commitment = keccak256(abi.encode(answer, salt, msg.sender, bountyId))
+   commitment = keccak256(abi.encodePacked(answer, salt, msg.sender, bountyId))
    ```
    The plaintext answer never leaves their machine yet. Binding the hash to
    `msg.sender` and `bountyId` means a leaked `(answer, salt)` cannot be replayed
@@ -86,8 +86,8 @@ npx hardhat build      # compile (solc 0.8.24)
 npx hardhat test solidity
 ```
 
-Expected: **36 passing** — 29 for `BountyJudge` (incl. a 256-run fuzz test) and
-7 for `RitualBountyJudge`. See [`TEST_PLAN.md`](TEST_PLAN.md) for the case matrix.
+Expected: **39 passing** — 29 for `BountyJudge` (incl. a 256-run fuzz test) and
+10 for `RitualBountyJudge`. See [`TEST_PLAN.md`](TEST_PLAN.md) for the case matrix.
 
 The LLM precompile (`0x0802`) only exists on Ritual Chain, so `judgeAll` is
 exercised in tests with `vm.mockCall`; the commit-reveal logic runs fully on-chain
@@ -111,15 +111,17 @@ faucet `https://faucet.ritualfoundation.org`.
 `BountyJudge` is deployed and verified live at:
 
 ```
-0x8E7f047025236dF8ACC6816857f98e7c5269D3B0
+0x2e27762ebdade0806744a0ecf0b903aadec19c8f
 ```
 
-Explorer: https://explorer.ritualfoundation.org/address/0x8E7f047025236dF8ACC6816857f98e7c5269D3B0
-(`nextBountyId = 1`, `MAX_SUBMISSIONS = 50` confirm the commit-reveal contract).
+Explorer: https://explorer.ritualfoundation.org/address/0x2e27762ebdade0806744a0ecf0b903aadec19c8f
+(`MAX_SUBMISSIONS = 50` and an `abi.encodePacked` `computeCommitment` confirm the
+commit-reveal contract).
 Point the frontend at it via `NEXT_PUBLIC_CONTRACT_ADDRESS` in `web/.env.local`.
 
 The full create → commit → reveal flow (including a wrong-salt rejection) was
-exercised live against this deployment.
+exercised live against this deployment, and the on-chain commitment was verified
+to equal `keccak256(abi.encodePacked(answer, salt, sender, bountyId))`.
 
 > **Ritual time unit:** Ritual Chain has sub-second blocks and its
 > `block.timestamp` is in **milliseconds**, not seconds. The commit/reveal

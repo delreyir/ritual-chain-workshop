@@ -53,6 +53,10 @@ contract RitualBountyJudge is PrecompileConsumer {
         bool finalized;
         bytes aiReview; // raw LLM completion (ranking / winner decision)
         uint256 winnerIndex;
+        // Final reveal: off-chain bundle of all revealed answers, committed to
+        // on-chain by hash so large plaintext never hits storage.
+        string revealedAnswersRef; // e.g. ipfs://... or storage-ref://...
+        bytes32 revealedAnswersHash; // keccak256 of the published bundle
         EncSubmission[] submissions;
         mapping(address => bool) hasSubmitted;
     }
@@ -78,6 +82,8 @@ contract RitualBountyJudge is PrecompileConsumer {
         uint256 submissionCount;
         uint256 winnerIndex;
         bytes aiReview;
+        string revealedAnswersRef;
+        bytes32 revealedAnswersHash;
     }
 
     uint256 private _locked = 1;
@@ -103,6 +109,11 @@ contract RitualBountyJudge is PrecompileConsumer {
         bytes32 commitment
     );
     event AllAnswersJudged(uint256 indexed bountyId, bytes aiReview);
+    event RevealedBundlePublished(
+        uint256 indexed bountyId,
+        string revealedAnswersRef,
+        bytes32 revealedAnswersHash
+    );
     event SubmissionAudited(
         uint256 indexed bountyId,
         uint256 indexed index,
@@ -160,7 +171,7 @@ contract RitualBountyJudge is PrecompileConsumer {
     /// @notice Submit an answer that is already ECIES-encrypted to the bounty's
     ///         TEE executor. Only ciphertext touches the chain.
     /// @param encryptedAnswer ECIES ciphertext of the plaintext answer.
-    /// @param commitment keccak256(abi.encode(answer, salt, msg.sender, bountyId)),
+    /// @param commitment keccak256(abi.encodePacked(answer, salt, msg.sender, bountyId)),
     ///        kept so the submitter can later prove authorship without trusting
     ///        the ciphertext alone.
     function submitEncrypted(
@@ -252,12 +263,38 @@ contract RitualBountyJudge is PrecompileConsumer {
         require(!s.audited, "already audited");
 
         bytes32 expected = keccak256(
-            abi.encode(answer, salt, msg.sender, bountyId)
+            abi.encodePacked(answer, salt, msg.sender, bountyId)
         );
         require(expected == s.commitment, "commitment mismatch");
 
         s.audited = true;
         emit SubmissionAudited(bountyId, index, msg.sender);
+    }
+
+    /// @notice Final reveal (PDF "Suggested Reveal Pattern"): after judging, the
+    ///         owner publishes an off-chain bundle of ALL revealed answers and
+    ///         commits to it on-chain with only a reference + hash. Anyone can
+    ///         fetch the bundle from `revealedAnswersRef` and verify
+    ///         keccak256(bundle) == revealedAnswersHash. Large plaintext never
+    ///         touches contract storage.
+    function publishRevealedBundle(
+        uint256 bountyId,
+        string calldata revealedAnswersRef,
+        bytes32 revealedAnswersHash
+    ) external bountyExists(bountyId) onlyOwner(bountyId) {
+        Bounty storage b = bounties[bountyId];
+        require(b.judged, "not judged yet");
+        require(revealedAnswersHash != bytes32(0), "empty hash");
+        require(bytes(revealedAnswersRef).length > 0, "empty ref");
+
+        b.revealedAnswersRef = revealedAnswersRef;
+        b.revealedAnswersHash = revealedAnswersHash;
+
+        emit RevealedBundlePublished(
+            bountyId,
+            revealedAnswersRef,
+            revealedAnswersHash
+        );
     }
 
     function finalizeWinner(
@@ -301,7 +338,9 @@ contract RitualBountyJudge is PrecompileConsumer {
                 finalized: b.finalized,
                 submissionCount: b.submissions.length,
                 winnerIndex: b.winnerIndex,
-                aiReview: b.aiReview
+                aiReview: b.aiReview,
+                revealedAnswersRef: b.revealedAnswersRef,
+                revealedAnswersHash: b.revealedAnswersHash
             });
     }
 

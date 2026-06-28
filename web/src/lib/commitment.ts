@@ -1,7 +1,6 @@
 import {
   keccak256,
-  encodeAbiParameters,
-  parseAbiParameters,
+  encodePacked,
   toHex,
   type Address,
 } from "viem";
@@ -10,7 +9,7 @@ import {
  * Commit-reveal helpers for BountyJudge.
  *
  * The commitment must match the contract exactly:
- *   keccak256(abi.encode(answer, salt, submitter, bountyId))
+ *   keccak256(abi.encodePacked(answer, salt, submitter, bountyId))
  */
 
 export function computeCommitment(
@@ -20,8 +19,8 @@ export function computeCommitment(
   bountyId: bigint,
 ): `0x${string}` {
   return keccak256(
-    encodeAbiParameters(
-      parseAbiParameters("string, bytes32, address, uint256"),
+    encodePacked(
+      ["string", "bytes32", "address", "uint256"],
       [answer, salt, submitter, bountyId],
     ),
   );

@@ -124,7 +124,7 @@ contract RitualBountyJudgeTest is Test {
         uint256 id = _createBounty();
         string memory answer = "the real answer";
         bytes32 salt = keccak256("salt");
-        bytes32 commitment = keccak256(abi.encode(answer, salt, alice, id));
+        bytes32 commitment = keccak256(abi.encodePacked(answer, salt, alice, id));
 
         vm.prank(alice);
         judge.submitEncrypted(id, hex"aa", commitment);
@@ -159,6 +159,43 @@ contract RitualBountyJudgeTest is Test {
         RitualBountyJudge.BountyView memory v = judge.getBounty(id);
         assertTrue(v.finalized);
         assertEq(v.winnerIndex, 0);
+    }
+
+    function test_publishRevealedBundle_storesRefAndHash() public {
+        uint256 id = _createBounty();
+        vm.prank(alice);
+        judge.submitEncrypted(id, hex"aa", keccak256("a"));
+        vm.warp(_submitDeadline(id));
+        _mockLLM(bytes("winner 0"));
+        judge.judgeAll(id, bytes(""));
+
+        string memory ref = "ipfs://bafy.../bundle.json";
+        bytes32 h = keccak256(bytes("the full revealed answers bundle"));
+        judge.publishRevealedBundle(id, ref, h);
+
+        RitualBountyJudge.BountyView memory v = judge.getBounty(id);
+        assertEq(v.revealedAnswersRef, ref);
+        assertEq(v.revealedAnswersHash, h);
+    }
+
+    function test_publishRevealedBundle_revertsBeforeJudged() public {
+        uint256 id = _createBounty();
+        vm.prank(alice);
+        judge.submitEncrypted(id, hex"aa", keccak256("a"));
+        vm.expectRevert(bytes("not judged yet"));
+        judge.publishRevealedBundle(id, "ipfs://x", keccak256("x"));
+    }
+
+    function test_publishRevealedBundle_revertsForNonOwner() public {
+        uint256 id = _createBounty();
+        vm.prank(alice);
+        judge.submitEncrypted(id, hex"aa", keccak256("a"));
+        vm.warp(_submitDeadline(id));
+        _mockLLM(bytes("r"));
+        judge.judgeAll(id, bytes(""));
+        vm.prank(alice);
+        vm.expectRevert(bytes("not bounty owner"));
+        judge.publishRevealedBundle(id, "ipfs://x", keccak256("x"));
     }
 
     receive() external payable {}

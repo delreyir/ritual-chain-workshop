@@ -111,10 +111,14 @@ faucet `https://faucet.ritualfoundation.org`.
 `BountyJudge` is deployed and verified live at:
 
 ```
-0x2e27762ebdade0806744a0ecf0b903aadec19c8f
+0x512ae6b62e0dc75e7c4d16c4a4ce31f77441ef0d
 ```
 
-Explorer: https://explorer.ritualfoundation.org/address/0x2e27762ebdade0806744a0ecf0b903aadec19c8f
+- **Deploy tx:** `0xca3f39adead1f1b3ff0f71fabeca3d8f26a2d77398454fabfc91b55795861945` (block 38808348)
+- **Network:** Ritual testnet (chainId 1979)
+- **Deployer:** `0x926585dec02a1a56014d16fb116b9229eb400fb3`
+
+Explorer: https://explorer.ritualfoundation.org/address/0x512ae6b62e0dc75e7c4d16c4a4ce31f77441ef0d
 (`MAX_SUBMISSIONS = 50` and an `abi.encodePacked` `computeCommitment` confirm the
 commit-reveal contract).
 Point the frontend at it via `NEXT_PUBLIC_CONTRACT_ADDRESS` in `web/.env.local`.

@@ -14,8 +14,10 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur shadow-xl shadow-black/20 ${className}`}
+      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] backdrop-blur-xl shadow-2xl shadow-black/40 ${className}`}
     >
+      {/* top hairline accent */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent" />
       {children}
     </div>
   );
@@ -33,7 +35,7 @@ export function CardHeader({
   return (
     <div className="flex items-start justify-between gap-3 border-b border-white/10 px-5 py-4">
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-300">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-200">
           {title}
         </h2>
         {subtitle ? (
@@ -60,11 +62,12 @@ export function CardBody({
 type Tone = "green" | "amber" | "indigo" | "zinc" | "red";
 
 const TONES: Record<Tone, string> = {
-  green: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
-  amber: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
-  indigo: "bg-indigo-500/15 text-indigo-300 ring-indigo-500/30",
-  zinc: "bg-zinc-500/15 text-zinc-300 ring-zinc-500/30",
-  red: "bg-red-500/15 text-red-300 ring-red-500/30",
+  green: "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30",
+  amber: "bg-amber-500/15 text-amber-300 ring-amber-400/30",
+  // "indigo" tone key is reused across the app; recolored to violet here.
+  indigo: "bg-violet-500/15 text-violet-300 ring-violet-400/30",
+  zinc: "bg-zinc-500/15 text-zinc-300 ring-zinc-400/20",
+  red: "bg-rose-500/15 text-rose-300 ring-rose-400/30",
 };
 
 export function Badge({
@@ -97,14 +100,14 @@ export function Button({
 }: ButtonProps) {
   const styles: Record<string, string> = {
     primary:
-      "bg-indigo-500 text-white hover:bg-indigo-400 disabled:bg-indigo-500/40",
+      "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/20 hover:from-violet-400 hover:to-fuchsia-400 disabled:from-violet-500/30 disabled:to-fuchsia-500/30 disabled:shadow-none",
     secondary:
-      "bg-white/10 text-zinc-100 hover:bg-white/15 disabled:bg-white/5",
+      "border border-white/10 bg-white/[0.06] text-zinc-100 hover:bg-white/[0.12] disabled:bg-white/[0.03]",
     ghost: "bg-transparent text-zinc-300 hover:bg-white/5",
   };
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:text-zinc-400 ${styles[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:text-zinc-400 ${styles[variant]} ${className}`}
       {...rest}
     >
       {children}
@@ -135,7 +138,7 @@ export function Field({
 }
 
 const inputBase =
-  "w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-400/60 focus:outline-none focus:ring-1 focus:ring-indigo-400/40";
+  "w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 transition-colors focus:border-violet-400/60 focus:outline-none focus:ring-2 focus:ring-violet-400/30";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${inputBase} ${props.className ?? ""}`} />;
@@ -193,7 +196,7 @@ export function TxStatus({
           href={`${explorerBase}/tx/${hash}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
+          className="text-violet-400 underline underline-offset-2 hover:text-violet-300"
         >
           View tx
         </a>
@@ -226,7 +229,7 @@ export function Notice({
 
 export function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-xl bg-black/20 px-3 py-2">
+    <div className="rounded-xl border border-white/5 bg-black/30 px-3 py-2">
       <div className="text-[11px] uppercase tracking-wide text-zinc-500">
         {label}
       </div>

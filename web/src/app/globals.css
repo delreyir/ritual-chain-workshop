@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --background: #08080c;
+  --foreground: #f4f4f5;
 }
 
 @theme inline {
@@ -14,9 +14,31 @@
 
 body {
   background:
-    radial-gradient(60rem 60rem at 80% -10%, rgba(99, 102, 241, 0.12), transparent 60%),
-    radial-gradient(50rem 50rem at -10% 10%, rgba(16, 185, 129, 0.08), transparent 55%),
+    radial-gradient(55rem 55rem at 85% -15%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(45rem 45rem at -10% 5%, rgba(34, 211, 238, 0.10), transparent 55%),
+    radial-gradient(48rem 48rem at 50% 125%, rgba(217, 70, 239, 0.10), transparent 60%),
     var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+/* Slim, themed scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.4) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.35);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }

@@ -32,15 +32,15 @@ export default function Home() {
   return (
     <div className="min-h-full">
       {/* Top nav */}
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-zinc-950/70 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-white/10 bg-black/50 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-400 text-sm font-bold text-zinc-950">
-              AI
+          <div className="flex items-center gap-2.5">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm font-bold text-white shadow-lg shadow-violet-500/30">
+              ⟡
             </div>
             <div>
-              <h1 className="text-sm font-semibold leading-tight">AI Bounty Judge</h1>
-              <p className="text-[11px] leading-tight text-zinc-500">on {ritualChain.name}</p>
+              <h1 className="text-sm font-semibold leading-tight">Ritual Bounty Judge</h1>
+              <p className="text-[11px] leading-tight text-zinc-500">commit · reveal · judge on {ritualChain.name}</p>
             </div>
           </div>
           <WalletConnect />
@@ -50,23 +50,25 @@ export default function Home() {
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         {/* Hero / explanation */}
         <section className="mb-6">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Sealed bounties, judged by AI.
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            <span className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">
+              Sealed bounties, judged by AI.
+            </span>
           </h2>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+          <p className="mt-3 max-w-2xl text-sm text-zinc-400">
             Participants commit a hash of their answer first. Answers stay hidden until the reveal
             phase, so nobody can copy a rival. After reveals close, Ritual AI judges every revealed
             answer in one batch and the owner finalizes the winner.
           </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
-            <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
-              Commit-reveal keeps answers hidden until judging.
+          <div className="mt-4 flex flex-wrap gap-2 text-xs text-zinc-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] px-3 py-1 ring-1 ring-inset ring-white/10">
+              <span className="h-1.5 w-1.5 rounded-full bg-violet-400" /> Commit-reveal hides answers until judging
             </span>
-            <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
-              All revealed answers are judged together in one AI call.
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] px-3 py-1 ring-1 ring-inset ring-white/10">
+              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" /> All revealed answers judged in one AI call
             </span>
-            <span className="rounded-full bg-white/5 px-3 py-1 ring-1 ring-inset ring-white/10">
-              AI review is advisory. The owner finalizes the winner.
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] px-3 py-1 ring-1 ring-inset ring-white/10">
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" /> AI advises, the owner finalizes
             </span>
           </div>
         </section>

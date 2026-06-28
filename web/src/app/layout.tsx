@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI Bounty Judge",
   description:
-    "Submit answers to a bounty. After the deadline, Ritual AI ranks all submissions. The bounty owner finalizes the winner.",
+    "Commit-reveal bounties judged by Ritual AI. Answers stay hidden until the reveal phase; the owner finalizes the winner.",
 };
 
 export default function RootLayout({
@@ -27,9 +27,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-zinc-950 text-zinc-100">
+      <body
+        suppressHydrationWarning
+        className="min-h-full bg-zinc-950 text-zinc-100"
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
